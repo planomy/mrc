@@ -280,13 +280,142 @@
         transition: none;
       }
     }
+
+    /* Lock screen */
+    #lock-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background:
+        radial-gradient(ellipse 120% 80% at 50% -20%, rgba(232, 168, 73, 0.12), transparent 50%),
+        var(--bg);
+    }
+
+    #lock-screen.hidden {
+      display: none;
+    }
+
+    .lock-card {
+      width: 100%;
+      max-width: 360px;
+      padding: 2rem 1.75rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .lock-card h2 {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin: 0 0 0.35rem;
+      letter-spacing: -0.02em;
+    }
+
+    .lock-card > p {
+      margin: 0 0 1.35rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    #pin-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .pin-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+
+    .pin-digit {
+      width: 3rem;
+      height: 3.25rem;
+      text-align: center;
+      font-size: 1.35rem;
+      font-family: inherit;
+      font-variant-numeric: tabular-nums;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.25);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .pin-digit:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .pin-digit::placeholder {
+      color: var(--muted);
+      opacity: 0.5;
+    }
+
+    #pin-submit {
+      padding: 0.65rem 1.25rem;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #141820;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: filter 0.15s, transform 0.15s;
+    }
+
+    #pin-submit:hover {
+      filter: brightness(1.08);
+    }
+
+    #pin-submit:active {
+      transform: scale(0.98);
+    }
+
+    #pin-error {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #f08080;
+    }
+
+    #pin-error.hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div id="lock-screen" aria-modal="true" role="dialog" aria-labelledby="lock-title">
+    <div class="lock-card">
+      <h2 id="lock-title">Mr C's Tool Bag</h2>
+      <p>Enter the 4-digit code to continue.</p>
+      <form id="pin-form" autocomplete="off">
+        <div class="pin-row" role="group" aria-label="4-digit code">
+          <input class="pin-digit" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Digit 1" data-index="0" autocomplete="off" />
+          <input class="pin-digit" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Digit 2" data-index="1" autocomplete="off" />
+          <input class="pin-digit" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Digit 3" data-index="2" autocomplete="off" />
+          <input class="pin-digit" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Digit 4" data-index="3" autocomplete="off" />
+        </div>
+        <button type="submit" id="pin-submit">Unlock</button>
+        <p id="pin-error" class="hidden" role="alert">Incorrect code. Try again.</p>
+      </form>
+    </div>
+  </div>
+
+  <div class="wrap hidden" id="main-wrap">
     <header>
-      <h1>Your tool board</h1>
-      <p>Open anything in one place · hosted on GitHub Pages</p>
+      <h1>The Tool Bag</h1>
+      <p>Writing goodness lives here</p>
     </header>
 
     <div class="toolbar">
@@ -318,6 +447,14 @@
   </div>
 
   <script>
+    /**
+     * Set your 4-digit access code (digits only).
+     * Note: In static HTML the value is visible in the page source—use this as casual access control only.
+     */
+    const ACCESS_PIN = "1011";
+
+    const SESSION_KEY = "planomy-toolboard-unlocked";
+
     /** Repo slug as it appears in https://planomy.github.io/{slug}/ */
     const TOOLS = [
       { name: "Supacoach", slug: "supacoach" },
@@ -358,6 +495,70 @@
 
     const previewFrameWrap = document.getElementById("preview-frame-wrap");
     const previewScaleInner = document.getElementById("preview-scale-inner");
+
+    const lockScreen = document.getElementById("lock-screen");
+    const mainWrap = document.getElementById("main-wrap");
+    const pinForm = document.getElementById("pin-form");
+    const pinDigits = Array.from(document.querySelectorAll(".pin-digit"));
+    const pinError = document.getElementById("pin-error");
+
+    function unlockUI() {
+      try {
+        sessionStorage.setItem(SESSION_KEY, "1");
+      } catch (_) {}
+      lockScreen.classList.add("hidden");
+      lockScreen.setAttribute("aria-hidden", "true");
+      mainWrap.classList.remove("hidden");
+      document.getElementById("filter")?.focus();
+    }
+
+    function getEnteredPin() {
+      return pinDigits.map((el) => el.value.replace(/\D/g, "")).join("");
+    }
+
+    function clearPinInputs() {
+      pinDigits.forEach((el) => {
+        el.value = "";
+      });
+      pinDigits[0].focus();
+    }
+
+    pinDigits.forEach((input, i) => {
+      input.addEventListener("input", (e) => {
+        const v = e.target.value.replace(/\D/g, "").slice(-1);
+        e.target.value = v;
+        pinError.classList.add("hidden");
+        if (v && i < pinDigits.length - 1) pinDigits[i + 1].focus();
+      });
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace" && !e.target.value && i > 0) {
+          pinDigits[i - 1].focus();
+        }
+      });
+      input.addEventListener("paste", (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || "").getData("text").replace(/\D/g, "").slice(0, 4);
+        for (let j = 0; j < 4; j++) pinDigits[j].value = text[j] || "";
+        pinDigits[Math.min(text.length, 3)].focus();
+      });
+    });
+
+    pinForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const pin = getEnteredPin();
+      if (pin.length === 4 && pin === ACCESS_PIN.replace(/\D/g, "").slice(0, 4)) {
+        unlockUI();
+      } else {
+        pinError.classList.remove("hidden");
+        clearPinInputs();
+      }
+    });
+
+    if (sessionStorage.getItem(SESSION_KEY) === "1") {
+      unlockUI();
+    } else {
+      pinDigits[0].focus();
+    }
 
     function hrefFor(slug) {
       return `${BASE}/${encodeURI(slug)}/`;
