@@ -402,7 +402,7 @@
 <body>
   <div id="lock-screen" aria-modal="true" role="dialog" aria-labelledby="lock-title">
     <div class="lock-card">
-      <h2 id="lock-title">Tool board</h2>
+      <h2 id="lock-title">Tool time</h2>
       <p>Enter the 4-digit code to continue.</p>
       <form id="pin-form" autocomplete="off">
         <div class="pin-row" role="group" aria-label="4-digit code">
@@ -412,15 +412,15 @@
           <input class="pin-digit" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Digit 4" data-index="3" autocomplete="off" />
         </div>
         <button type="submit" id="pin-submit">Unlock</button>
-        <p id="pin-error" class="hidden" role="alert">Incorrect code. Try again.</p>
+        <p id="pin-error" class="hidden" role="alert">Nup, wrong. Your IP has been reported.</p>
       </form>
     </div>
   </div>
 
   <div class="wrap hidden" id="main-wrap">
     <header>
-      <h1>Your tool board</h1>
-      <p>Open anything in one place · hosted on GitHub Pages</p>
+      <h1>The tool time board</h1>
+      <p>where writing goodness lives</p>
     </header>
 
     <div class="toolbar">
@@ -442,7 +442,7 @@
       <span id="preview-title">Preview</span>
     </div>
     <div class="preview-frame-wrap" id="preview-frame-wrap">
-      <div id="preview-loading">Loading preview…</div>
+      <div id="preview-loading">Hang on…</div>
       <div class="preview-scale-outer">
         <div class="preview-scale-inner" id="preview-scale-inner">
           <iframe id="preview-iframe" title="Live site preview" referrerpolicy="no-referrer-when-downgrade"></iframe>
