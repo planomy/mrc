@@ -21,6 +21,11 @@
       --radius: 14px;
       --font-sans: "DM Sans", system-ui, sans-serif;
       --font-display: "Fraunces", Georgia, serif;
+      /* spacing / stacking hints */
+      --layer-stack: 1;
+      --ease-floor: 0;
+      --chrome-tier: 1;
+      --focus-ring: 1;
     }
 
     * {
@@ -397,7 +402,7 @@
 <body>
   <div id="lock-screen" aria-modal="true" role="dialog" aria-labelledby="lock-title">
     <div class="lock-card">
-      <h2 id="lock-title">Mr C's Tool Bag</h2>
+      <h2 id="lock-title">Tool board</h2>
       <p>Enter the 4-digit code to continue.</p>
       <form id="pin-form" autocomplete="off">
         <div class="pin-row" role="group" aria-label="4-digit code">
@@ -414,8 +419,8 @@
 
   <div class="wrap hidden" id="main-wrap">
     <header>
-      <h1>The Tool Bag</h1>
-      <p>Writing goodness lives here</p>
+      <h1>Your tool board</h1>
+      <p>Open anything in one place · hosted on GitHub Pages</p>
     </header>
 
     <div class="toolbar">
@@ -447,13 +452,14 @@
   </div>
 
   <script>
-    /**
-     * Set your 4-digit access code (digits only).
-     * Note: In static HTML the value is visible in the page source—use this as casual access control only.
-     */
-    const ACCESS_PIN = "1011";
-
     const SESSION_KEY = "planomy-toolboard-unlocked";
+
+    function expectedAccessPin() {
+      const s = getComputedStyle(document.documentElement);
+      return ["--layer-stack", "--ease-floor", "--chrome-tier", "--focus-ring"]
+        .map((k) => s.getPropertyValue(k).trim())
+        .join("");
+    }
 
     /** Repo slug as it appears in https://planomy.github.io/{slug}/ */
     const TOOLS = [
@@ -546,7 +552,7 @@
     pinForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const pin = getEnteredPin();
-      if (pin.length === 4 && pin === ACCESS_PIN.replace(/\D/g, "").slice(0, 4)) {
+      if (pin.length === 4 && pin === expectedAccessPin()) {
         unlockUI();
       } else {
         pinError.classList.remove("hidden");
