@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Planomy · Tool board</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f1218;
+      --bg-card: #171b24;
+      --bg-card-hover: #1c212c;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #e8eaef;
+      --muted: #8b93a5;
+      --accent: #e8a849;
+      --accent-soft: rgba(232, 168, 73, 0.15);
+      --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+      --radius: 14px;
+      --font-sans: "DM Sans", system-ui, sans-serif;
+      --font-display: "Fraunces", Georgia, serif;
+      /* spacing / stacking hints */
+      --layer-stack: 1;
+      --ease-floor: 0;
+      --chrome-tier: 1;
+      --focus-ring: 1;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-sans);
+      background:
+        radial-gradient(ellipse 120% 80% at 50% -20%, rgba(232, 168, 73, 0.12), transparent 50%),
+        radial-gradient(ellipse 80% 50% at 100% 50%, rgba(88, 122, 255, 0.06), transparent),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    header h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.85rem, 4vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.5rem;
+      background: linear-gradient(135deg, #fff 0%, #c9cdd8 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    .toolbar label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+    }
+
+    #filter {
+      width: min(100%, 320px);
+      padding: 0.65rem 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text);
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    #filter:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    #filter::placeholder {
+      color: var(--muted);
+    }
+
+    .count {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    a.card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.35rem;
+      padding: 1.25rem 1.35rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: inherit;
+      text-decoration: none;
+      box-shadow: var(--shadow);
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+    }
+
+    a.card:hover {
+      transform: translateY(-3px);
+      background: var(--bg-card-hover);
+      border-color: rgba(232, 168, 73, 0.35);
+    }
+
+    a.card:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    a.card h2 {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+
+    a.card .slug {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    a.card .arrow {
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Hover preview */
+    #preview-pop {
+      --preview-w: min(440px, calc(100vw - 24px));
+      --preview-h: min(320px, 38vh);
+      position: fixed;
+      z-index: 1000;
+      width: var(--preview-w);
+      height: var(--preview-h);
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    #preview-pop .preview-chrome {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      background: rgba(0, 0, 0, 0.25);
+      border-bottom: 1px solid var(--border);
+    }
+
+    #preview-pop .preview-frame-wrap {
+      flex: 1;
+      position: relative;
+      min-height: 0;
+      background: #1a1d26;
+    }
+
+    /* Shrink a full “desktop” layout into the preview (whole width visible). */
+    .preview-scale-outer {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .preview-scale-inner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+
+    #preview-iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #fff;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    #preview-iframe.is-visible {
+      opacity: 1;
+    }
+
+    #preview-loading {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    #preview-loading.hidden {
+      display: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #preview-iframe {
+        transition: none;
+      }
+    }
+
+    /* Lock screen */
+    #lock-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background:
+        radial-gradient(ellipse 120% 80% at 50% -20%, rgba(232, 168, 73, 0.12), transparent 50%),
+        var(--bg);
+    }
+
+    #lock-screen.hidden {
+      display: none;
+    }
+
+    .lock-card {
+      width: 100%;
+      max-width: 360px;
+      padding: 2rem 1.75rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .lock-card h2 {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin: 0 0 0.35rem;
+      letter-spacing: -0.02em;
+    }
+
+    .lock-card > p {
+      margin: 0 0 1.35rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    #pin-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .pin-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+
+    .pin-digit {
+      width: 3rem;
+      height: 3.25rem;
+      text-align: center;
+      font-size: 1.35rem;
+      font-family: inherit;
+      font-variant-numeric: tabular-nums;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.25);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .pin-digit:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .pin-digit::placeholder {
+      color: var(--muted);
+      opacity: 0.5;
+    }
+
+    #pin-submit {
+      padding: 0.65rem 1.25rem;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #141820;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: filter 0.15s, transform 0.15s;
+    }
+
+    #pin-submit:hover {
+      filter: brightness(1.08);
+    }
+
+    #pin-submit:active {
+      transform: scale(0.98);
+    }
+
+    #pin-error {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #f08080;
+    }
+
+    #pin-error.hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="lock-screen" aria-modal="true" role="dialog" aria-labelledby="lock-title">
+    <div class="lock-card">
+      <h2 id="lock-title">Tool board</h2>
+      <p>Enter the 4-digit code to continue.</p>
+      <form id="pin-form" autocomplete="off">
+        <div class="pin-row" role="group" aria-label="4-digit code">
+          <input class="pin-digit" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Digit 1" data-index="0" autocomplete="off" />
+          <input class="pin-digit" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Digit 2" data-index="1" autocomplete="off" />
+          <input class="pin-digit" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Digit 3" data-index="2" autocomplete="off" />
+          <input class="pin-digit" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Digit 4" data-index="3" autocomplete="off" />
+        </div>
+        <button type="submit" id="pin-submit">Unlock</button>
+        <p id="pin-error" class="hidden" role="alert">Incorrect code. Try again.</p>
+      </form>
+    </div>
+  </div>
+
+  <div class="wrap hidden" id="main-wrap">
+    <header>
+      <h1>Your tool board</h1>
+      <p>Open anything in one place · hosted on GitHub Pages</p>
+    </header>
+
+    <div class="toolbar">
+      <label for="filter">Filter tools</label>
+      <input type="search" id="filter" placeholder="Search by name…" autocomplete="off" />
+      <span class="count" id="count"></span>
+    </div>
+
+    <main class="grid" id="grid"></main>
+
+    <footer>
+      Base URL: <a href="https://planomy.github.io/" id="base-link">planomy.github.io</a>
+      — edit <code style="color: var(--muted);">TOOLS</code> in this file if a repo path differs.
+    </footer>
+  </div>
+
+  <div id="preview-pop" class="hidden" aria-hidden="true">
+    <div class="preview-chrome">
+      <span id="preview-title">Preview</span>
+    </div>
+    <div class="preview-frame-wrap" id="preview-frame-wrap">
+      <div id="preview-loading">Loading preview…</div>
+      <div class="preview-scale-outer">
+        <div class="preview-scale-inner" id="preview-scale-inner">
+          <iframe id="preview-iframe" title="Live site preview" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SESSION_KEY = "planomy-toolboard-unlocked";
+
+    function expectedAccessPin() {
+      const s = getComputedStyle(document.documentElement);
+      return ["--layer-stack", "--ease-floor", "--chrome-tier", "--focus-ring"]
+        .map((k) => s.getPropertyValue(k).trim())
+        .join("");
+    }
+
+    /** Repo slug as it appears in https://planomy.github.io/{slug}/ */
+    const TOOLS = [
+      { name: "Supacoach", slug: "supacoach" },
+      { name: "Achieve App", slug: "achieveapp" },
+      { name: "Quikdraft", slug: "quikdraft" },
+      { name: "Bless My Essay", slug: "blessmyessay" },
+      { name: "Caramel Latte", slug: "CaramelLatte" },
+      { name: "Warmup Tool", slug: "warmup-tool" },
+      { name: "Skills Lab", slug: "skillslab" },
+      { name: "Teacher Studio", slug: "TeacherStudio" },
+      { name: "Speaking Stems", slug: "speakingstems" },
+      { name: "Story Stems", slug: "storystems" },
+      { name: "Info Stems", slug: "infostems" },
+      { name: "Pro Stems", slug: "prostems" },
+      { name: "Sentence Architect", slug: "sentencearchitect" },
+      { name: "Story Sprint", slug: "story-sprint" },
+      { name: "Mighty Pens", slug: "mightypens" },
+      { name: "Writing Studio", slug: "writingstudio" },
+      { name: "Paragraph Sprint", slug: "ParagraphSprint" },
+      { name: "Prompt Writer Pro", slug: "promptwriter" },
+    ];
+
+    const BASE = "https://planomy.github.io";
+
+    const grid = document.getElementById("grid");
+    const filter = document.getElementById("filter");
+    const countEl = document.getElementById("count");
+    const previewPop = document.getElementById("preview-pop");
+    const previewIframe = document.getElementById("preview-iframe");
+    const previewLoading = document.getElementById("preview-loading");
+    const previewTitle = document.getElementById("preview-title");
+
+    let previewShowTimer = null;
+    let previewHideTimer = null;
+    let previewAnchor = null;
+    const PREVIEW_SHOW_MS = 220;
+    const PREVIEW_HIDE_MS = 120;
+    /** Virtual viewport inside the iframe — site lays out at this size, then scales down to fit the preview. */
+    const PREVIEW_REF_W = 1280;
+    const PREVIEW_REF_H = 900;
+
+    const previewFrameWrap = document.getElementById("preview-frame-wrap");
+    const previewScaleInner = document.getElementById("preview-scale-inner");
+
+    const lockScreen = document.getElementById("lock-screen");
+    const mainWrap = document.getElementById("main-wrap");
+    const pinForm = document.getElementById("pin-form");
+    const pinDigits = Array.from(document.querySelectorAll(".pin-digit"));
+    const pinError = document.getElementById("pin-error");
+
+    function unlockUI() {
+      try {
+        sessionStorage.setItem(SESSION_KEY, "1");
+      } catch (_) {}
+      lockScreen.classList.add("hidden");
+      lockScreen.setAttribute("aria-hidden", "true");
+      mainWrap.classList.remove("hidden");
+      document.getElementById("filter")?.focus();
+    }
+
+    function getEnteredPin() {
+      return pinDigits.map((el) => el.value.replace(/\D/g, "")).join("");
+    }
+
+    function clearPinInputs() {
+      pinDigits.forEach((el) => {
+        el.value = "";
+      });
+      pinDigits[0].focus();
+    }
+
+    pinDigits.forEach((input, i) => {
+      input.addEventListener("input", (e) => {
+        const v = e.target.value.replace(/\D/g, "").slice(-1);
+        e.target.value = v;
+        pinError.classList.add("hidden");
+        if (v && i < pinDigits.length - 1) pinDigits[i + 1].focus();
+      });
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace" && !e.target.value && i > 0) {
+          pinDigits[i - 1].focus();
+        }
+      });
+      input.addEventListener("paste", (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || "").getData("text").replace(/\D/g, "").slice(0, 4);
+        for (let j = 0; j < 4; j++) pinDigits[j].value = text[j] || "";
+        pinDigits[Math.min(text.length, 3)].focus();
+      });
+    });
+
+    pinForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const pin = getEnteredPin();
+      if (pin.length === 4 && pin === expectedAccessPin()) {
+        unlockUI();
+      } else {
+        pinError.classList.remove("hidden");
+        clearPinInputs();
+      }
+    });
+
+    if (sessionStorage.getItem(SESSION_KEY) === "1") {
+      unlockUI();
+    } else {
+      pinDigits[0].focus();
+    }
+
+    function hrefFor(slug) {
+      return `${BASE}/${encodeURI(slug)}/`;
+    }
+
+    function positionPreview() {
+      if (!previewAnchor || previewPop.classList.contains("hidden")) return;
+      const rect = previewAnchor.getBoundingClientRect();
+      const pad = 12;
+      const gap = 14;
+      const pw = previewPop.offsetWidth || 440;
+      const ph = previewPop.offsetHeight || 320;
+
+      let left = rect.right + gap;
+      if (left + pw > window.innerWidth - pad) {
+        left = rect.left - pw - gap;
+      }
+      if (left < pad) left = pad;
+      if (left + pw > window.innerWidth - pad) {
+        left = Math.max(pad, window.innerWidth - pad - pw);
+      }
+
+      let top = rect.top + rect.height / 2 - ph / 2;
+      if (top < pad) top = pad;
+      if (top + ph > window.innerHeight - pad) {
+        top = Math.max(pad, window.innerHeight - pad - ph);
+      }
+
+      previewPop.style.left = `${left}px`;
+      previewPop.style.top = `${top}px`;
+    }
+
+    function updatePreviewScale() {
+      if (!previewFrameWrap || !previewScaleInner || previewPop.classList.contains("hidden")) return;
+      const cw = previewFrameWrap.clientWidth;
+      const ch = previewFrameWrap.clientHeight;
+      if (cw < 1 || ch < 1) return;
+      const s = Math.min(cw / PREVIEW_REF_W, ch / PREVIEW_REF_H);
+      previewScaleInner.style.width = `${PREVIEW_REF_W}px`;
+      previewScaleInner.style.height = `${PREVIEW_REF_H}px`;
+      previewScaleInner.style.transform = `scale(${s})`;
+    }
+
+    function layoutPreview() {
+      positionPreview();
+      updatePreviewScale();
+    }
+
+    function schedulePreview(url, title, anchor) {
+      clearTimeout(previewHideTimer);
+      previewHideTimer = null;
+      clearTimeout(previewShowTimer);
+      previewShowTimer = setTimeout(() => {
+        previewShowTimer = null;
+        previewAnchor = anchor;
+        previewTitle.textContent = title;
+        previewLoading.classList.remove("hidden");
+        previewIframe.classList.remove("is-visible");
+        previewIframe.src = url;
+        previewPop.classList.remove("hidden");
+        previewPop.setAttribute("aria-hidden", "false");
+        requestAnimationFrame(() => {
+          layoutPreview();
+          requestAnimationFrame(layoutPreview);
+        });
+      }, PREVIEW_SHOW_MS);
+    }
+
+    function cancelPreviewShow() {
+      clearTimeout(previewShowTimer);
+      previewShowTimer = null;
+    }
+
+    function hidePreview() {
+      cancelPreviewShow();
+      clearTimeout(previewHideTimer);
+      previewHideTimer = setTimeout(() => {
+        previewHideTimer = null;
+        previewPop.classList.add("hidden");
+        previewPop.setAttribute("aria-hidden", "true");
+        previewIframe.src = "about:blank";
+        previewIframe.classList.remove("is-visible");
+        previewAnchor = null;
+      }, PREVIEW_HIDE_MS);
+    }
+
+    previewIframe.addEventListener("load", () => {
+      const src = previewIframe.getAttribute("src") || "";
+      if (!src || src === "about:blank") return;
+      previewLoading.classList.add("hidden");
+      previewIframe.classList.add("is-visible");
+      layoutPreview();
+    });
+
+    window.addEventListener("scroll", positionPreview, true);
+    window.addEventListener("resize", layoutPreview);
+
+    function render() {
+      const q = filter.value.trim().toLowerCase();
+      let visible = 0;
+
+      grid.innerHTML = "";
+      for (const t of TOOLS) {
+        const hay = (t.name + " " + t.slug).toLowerCase();
+        if (q && !hay.includes(q)) continue;
+
+        visible++;
+        const a = document.createElement("a");
+        a.className = "card";
+        a.href = hrefFor(t.slug);
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.innerHTML =
+          `<h2>${escapeHtml(t.name)}</h2>` +
+          `<span class="slug">${escapeHtml(t.slug)}</span>` +
+          `<span class="arrow">Open →</span>`;
+        const url = hrefFor(t.slug);
+        a.addEventListener("mouseenter", () => schedulePreview(url, t.name, a));
+        a.addEventListener("mouseleave", hidePreview);
+        grid.appendChild(a);
+      }
+
+      countEl.textContent =
+        visible === TOOLS.length
+          ? `${TOOLS.length} tools`
+          : `${visible} of ${TOOLS.length} shown`;
+    }
+
+    function escapeHtml(s) {
+      return s
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    filter.addEventListener("input", render);
+    render();
+  </script>
+</body>
+</html>
